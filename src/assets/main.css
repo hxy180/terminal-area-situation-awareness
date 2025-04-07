@@ -1,0 +1,168 @@
+@import './base.css';
+
+:root {
+  --primary-color: #0056b3;
+  --background-color: #012a57;
+  --panel-background: rgba(1, 42, 87, 0.7);
+  --text-color: #ffffff;
+  --border-color: #4c98e2;
+  --highlight-color: #00b3ff;
+}
+
+#app {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+.system-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(circle at center, #035 0%, #012a57 100%);
+}
+
+.header {
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--text-color);
+  text-shadow: 0 0 10px var(--highlight-color);
+  letter-spacing: 2px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+}
+
+.left-panel {
+  flex: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-panel {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel {
+  background-color: var(--panel-background);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  box-shadow: 0 0 15px rgba(0, 179, 255, 0.2);
+  padding: 15px;
+  position: relative;
+}
+
+.panel-title {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: var(--highlight-color);
+}
+
+.chart-container {
+  width: 100%;
+  height: 100%;
+}
+
+.indicator {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+
+.indicator-label {
+  color: var(--text-color);
+}
+
+.indicator-value {
+  color: var(--highlight-color);
+  font-weight: bold;
+}
+
+.control-buttons {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 100%;
+}
+
+.el-button {
+  background-color: var(--panel-background);
+  border-color: var(--border-color);
+  color: var(--text-color);
+  min-width: 120px;
+}
+
+.el-button:hover {
+  background-color: var(--highlight-color);
+  border-color: var(--border-color);
+  color: var(--background-color);
+}
+
+.direction-panel {
+  height: 100%;
+  width: 100%;
+}
+
+.direction-panels {
+  display: flex;
+  gap: 20px;
+  height: 180px;
+}
+
+.chart-panel {
+  flex: 1;
+}
+
+.track-panel {
+  position: relative;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  }
+}

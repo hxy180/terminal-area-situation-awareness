@@ -1,0 +1,25 @@
+{
+  "name": "huanji",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/motion": "^3.0.3",
+    "animate.css": "^4.1.1",
+    "echarts": "^5.6.0",
+    "element-plus": "^2.9.7",
+    "huanji": "file:",
+    "three": "^0.175.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.2.4",
+    "vite-plugin-vue-devtools": "^7.7.2"
+  }
+}
