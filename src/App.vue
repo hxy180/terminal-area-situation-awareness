@@ -37,6 +37,7 @@ export default {
       showMetrics: false,
       showParams: false,
       showStatistics: false,
+      showTrackChart: false,
       analyzeLoading: false,
       algorithmParams: {
         resamplePoints: 200,
@@ -67,6 +68,7 @@ export default {
             this.showMetrics = false;
             this.showParams = false;
             this.showStatistics = false;
+            this.showTrackChart = false;
             // 重置算法参数中的指标值
             const { resamplePoints, centerAreaLength, neighborRadius, minPoints } = this.algorithmParams;
             this.algorithmParams = {
@@ -99,6 +101,14 @@ export default {
             this.updateAlgorithmMetrics();
             this.showMetrics = true;
             this.showParams = true;
+            this.showTrackChart = true;
+            
+            // 在识别交通流后更新TrackChart数据
+            this.$nextTick(() => {
+              if (this.$refs.trackChart) {
+                this.$refs.trackChart.updateData(this.trackData);
+              }
+            });
             
             ElMessage({
               message: '交通流识别完成',
@@ -172,8 +182,8 @@ export default {
             // 更新系统状态
             this.headerInfo.status = '数据已加载，可进行分析';
             
-            // 可以触发更新TrackChart
-            this.$refs.trackChart?.updateData(this.trackData);
+            // 不再直接更新TrackChart，只在点击"识别交通流"时更新
+            // this.$refs.trackChart?.updateData(this.trackData);
             
           }, 2000);
         } catch (error) {
@@ -283,10 +293,16 @@ export default {
     <main class="content">
       <div v-motion :initial="{ opacity: 0, x: -50 }" :enter="{ opacity: 1, x: 0, transition: { delay: 500, duration: 500 } }" class="left-panel">
         <div class="panel track-panel">
-          <TrackChart 
-            ref="trackChart" 
-            :pauseAnimation="showParamDialog"
-          />
+          <Transition name="fade">
+            <TrackChart 
+              v-if="showTrackChart"
+              ref="trackChart" 
+              :pauseAnimation="showParamDialog"
+            />
+            <div v-else class="no-data-placeholder track-placeholder">
+              <div class="placeholder-text">请点击"选择数据"上传数据，然后点击"识别交通流"查看航迹运行态势</div>
+            </div>
+          </Transition>
           <Transition name="slide-fade">
             <div class="parameter-display-container" v-show="showParams">
               <ParameterDisplay 
@@ -497,14 +513,52 @@ export default {
 
 .footer {
   height: 40px;
-    display: flex;
+  display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 30px;
-  background-color: rgba(1, 42, 87, 0.8);
-  border-top: 1px solid var(--border-color);
-  color: #ffffff;
+  background: rgba(1, 42, 87, 0.8);
+  color: #ccc;
   font-size: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.tech-info, .copyright {
+  max-width: 50%;
+}
+
+/* 添加占位符的样式 */
+.no-data-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(1, 42, 87, 0.5);
+  border-radius: 5px;
+}
+
+.track-placeholder {
+  background-image: linear-gradient(rgba(1, 42, 87, 0.5), rgba(0, 102, 204, 0.3));
+}
+
+.placeholder-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  text-align: center;
+  padding: 20px;
+  max-width: 80%;
+}
+
+/* 添加淡入淡出过渡效果 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 @keyframes fadeIn {
@@ -564,34 +618,6 @@ export default {
 .slide-fade-leave-from {
   transform: translateX(0);
   opacity: 1;
-}
-
-.no-data-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(1, 42, 87, 0.3);
-  border-radius: 5px;
-  border: 1px dashed rgba(76, 152, 226, 0.5);
-}
-
-.placeholder-text {
-  color: #4c98e2;
-  font-size: 16px;
-  text-align: center;
-  padding: 20px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 
 .direction-container {
