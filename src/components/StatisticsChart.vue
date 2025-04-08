@@ -17,8 +17,8 @@ export default {
         lotwValues: [0, 0, 0, 0]
       },
       targetData: {
-        trackCounts: [70, 68, 72, 140],
-        lotwValues: [6, 5, 4, 11]
+        trackCounts: [20, 15, 15, 50],
+        lotwValues: [3, 2, 2, 9]
       }
     };
   },
@@ -27,10 +27,9 @@ export default {
       this.initChart();
       window.addEventListener('resize', this.resizeChart);
       
-      // 延迟启动动画，让用户能看到动画过程
-      setTimeout(() => {
-        this.startDataAnimation();
-      }, 600);
+      // 直接显示最终数据，不使用动画
+      this.currentData = { ...this.targetData };
+      this.updateChart();
     });
   },
   beforeUnmount() {
@@ -71,13 +70,13 @@ export default {
         }],
         grid: [{
           left: '10%',
-          right: '10%',
+          right: '12%',
           top: '15%',
           height: '35%',
           containLabel: true
         }, {
           left: '10%',
-          right: '10%',
+          right: '12%',
           top: '60%',
           height: '35%',
           containLabel: true
@@ -142,21 +141,25 @@ export default {
             padding: [0, 30, 0, 0]
           },
           min: 0,
-          max: 150,
-          interval: 30,
+          max: 60,
+          interval: 15,
           axisLine: {
             lineStyle: {
               color: '#4c98e2'
             }
           },
           axisLabel: {
-            color: '#fff'
+            color: '#fff',
+            inside: false,
+            showMinLabel: true,
+            showMaxLabel: true
           },
           splitLine: {
             lineStyle: {
               color: 'rgba(76, 152, 226, 0.2)'
             }
-          }
+          },
+          position: 'left'
         }, {
           gridIndex: 1,
           type: 'value',
@@ -166,7 +169,7 @@ export default {
             padding: [0, 30, 0, 0]
           },
           min: 0,
-          max: 12,
+          max: 10,
           interval: 2,
           axisLine: {
             lineStyle: {
@@ -174,13 +177,17 @@ export default {
             }
           },
           axisLabel: {
-            color: '#fff'
+            color: '#fff',
+            inside: false, 
+            showMinLabel: true,
+            showMaxLabel: true
           },
           splitLine: {
             lineStyle: {
               color: 'rgba(255, 255, 255, 0.2)'
             }
-          }
+          },
+          position: 'left'
         }],
         series: [
           {
@@ -205,9 +212,18 @@ export default {
                 ])
               }
             },
-            animationDuration: 300,
-            animationDelay: function(idx) {
-              return idx * 100;
+            markLine: {
+              silent: true,
+              symbol: ['none', 'none'],
+              lineStyle: {
+                color: '#00ffff',
+                type: 'solid',
+                width: 1,
+                opacity: 0.3
+              },
+              data: [
+                { type: 'max', name: '最大值', valueIndex: 0 }
+              ]
             }
           },
           {
@@ -232,65 +248,7 @@ export default {
                 ])
               }
             },
-            animationDuration: 300,
-            animationDelay: function(idx) {
-              return idx * 100 + 500;
-            }
-          }
-        ]
-      };
-
-      this.chart.setOption(option);
-    },
-    startDataAnimation() {
-      // 重置当前数据
-      this.currentData = {
-        trackCounts: [0, 0, 0, 0],
-        lotwValues: [0, 0, 0, 0]
-      };
-      
-      this.timer = setInterval(() => {
-        let isComplete = true;
-        
-        // 更新航迹数量 - 使用更平滑的动画
-        for (let i = 0; i < 4; i++) {
-          if (this.currentData.trackCounts[i] < this.targetData.trackCounts[i]) {
-            const diff = this.targetData.trackCounts[i] - this.currentData.trackCounts[i];
-            const step = Math.max(1, Math.ceil(diff / 15));  // 至少增加1，最多15步完成
-            this.currentData.trackCounts[i] += step;
-            
-            // 确保不超过目标值
-            if (this.currentData.trackCounts[i] > this.targetData.trackCounts[i]) {
-              this.currentData.trackCounts[i] = this.targetData.trackCounts[i];
-            }
-            
-            isComplete = false;
-          }
-          
-          if (this.currentData.lotwValues[i] < this.targetData.lotwValues[i]) {
-            const diff = this.targetData.lotwValues[i] - this.currentData.lotwValues[i];
-            const step = Math.max(0.1, diff / 15);  // 平滑过渡
-            this.currentData.lotwValues[i] += step;
-            this.currentData.lotwValues[i] = parseFloat(this.currentData.lotwValues[i].toFixed(1));
-            
-            // 确保不超过目标值
-            if (this.currentData.lotwValues[i] > this.targetData.lotwValues[i]) {
-              this.currentData.lotwValues[i] = this.targetData.lotwValues[i];
-            }
-            
-            isComplete = false;
-          }
-        }
-        
-        this.updateChart();
-        
-        if (isComplete) {
-          clearInterval(this.timer);
-          
-          // 添加动画完成后的效果
-          const option = this.chart.getOption();
-          option.series.forEach(series => {
-            series.markLine = {
+            markLine: {
               silent: true,
               symbol: ['none', 'none'],
               lineStyle: {
@@ -302,11 +260,12 @@ export default {
               data: [
                 { type: 'max', name: '最大值', valueIndex: 0 }
               ]
-            };
-          });
-          this.chart.setOption(option);
-        }
-      }, 50);  // 更快的更新速度
+            }
+          }
+        ]
+      };
+
+      this.chart.setOption(option);
     },
     resizeChart() {
       if (this.chart) {

@@ -78,6 +78,12 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative;
+  z-index: 10;
+  background-color: rgba(1, 42, 87, 0.9);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .params-section {
@@ -103,6 +109,8 @@ export default {
   display: flex;
   justify-content: space-between;
   font-size: 14px;
+  align-items: center;
+  margin-bottom: 2px;
 }
 
 .metric-indicator {
@@ -116,11 +124,17 @@ export default {
 
 .indicator-label {
   color: #ffffff;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .indicator-value {
   color: #00b3ff;
   font-weight: bold;
+  text-align: right;
+  min-width: 60px;
+  padding-left: 5px;
+  position: relative;
 }
 
 @keyframes slideIn {

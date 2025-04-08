@@ -13,7 +13,6 @@
       <div class="corner top-right"></div>
       <div class="corner bottom-left"></div>
       <div class="corner bottom-right"></div>
-      <div class="scanning-line"></div>
     </div>
     
     <div class="param-setting-container">
@@ -102,8 +101,7 @@ export default {
           description: '聚类算法的最小点数要求，用于过滤噪声点'
         }
       },
-      initialParams: {},
-      animationId: null
+      initialParams: {}
     };
   },
   watch: {
@@ -122,16 +120,6 @@ export default {
               }
             });
           }
-          
-          // 添加动画效果
-          this.$nextTick(() => {
-            this.animateParameters();
-          });
-        } else {
-          // 清除动画
-          if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-          }
         }
       },
       immediate: true
@@ -139,9 +127,6 @@ export default {
   },
   methods: {
     handleClose() {
-      if (this.animationId) {
-        cancelAnimationFrame(this.animationId);
-      }
       this.$emit('update:visible', false);
     },
     resetParams() {
@@ -150,15 +135,6 @@ export default {
           this.params[key].value = this.initialParams[key].value;
         }
       });
-      
-      // 添加重置动画效果
-      const paramValues = document.querySelectorAll('.param-value');
-      paramValues.forEach(el => {
-        el.classList.add('param-reset');
-        setTimeout(() => {
-          el.classList.remove('param-reset');
-        }, 500);
-      });
     },
     saveParams() {
       const paramValues = {};
@@ -166,39 +142,12 @@ export default {
         paramValues[key] = this.params[key].value;
       });
       
-      // 添加保存动画效果
-      const saveButton = document.querySelector('.confirm-btn');
-      if (saveButton) {
-        saveButton.classList.add('save-pulse');
-        setTimeout(() => {
-          saveButton.classList.remove('save-pulse');
-          this.dialogVisible = false;
-          this.$emit('update:visible', false);
-          this.$emit('save', paramValues);
-        }, 300);
-      } else {
-        this.dialogVisible = false;
-        this.$emit('update:visible', false);
-        this.$emit('save', paramValues);
-      }
+      this.dialogVisible = false;
+      this.$emit('update:visible', false);
+      this.$emit('save', paramValues);
     },
     handleChange(key, value) {
-      // 为参数变化添加视觉反馈
-      const inputEl = document.querySelector(`.param-item:nth-child(${Object.keys(this.params).indexOf(key) + 1}) .el-input-number`);
-      if (inputEl) {
-        inputEl.classList.add('param-changed');
-        setTimeout(() => {
-          inputEl.classList.remove('param-changed');
-        }, 300);
-      }
-    },
-    animateParameters() {
-      // 为参数添加动画效果
-      const paramItems = document.querySelectorAll('.param-item');
-      paramItems.forEach((item, index) => {
-        item.style.animationDelay = `${index * 100}ms`;
-        item.classList.add('param-animate');
-      });
+      // 参数变化时的处理
     }
   }
 };
@@ -220,45 +169,7 @@ export default {
   border-radius: 12px;
   border-left: 4px solid #1890ff;
   box-shadow: 0 2px 0 rgba(24, 144, 255, 0.12), 0 4px 10px rgba(32, 82, 149, 0.1);
-  transform: translateY(20px);
-  opacity: 0;
   position: relative;
-  transition: all 0.3s ease;
-}
-
-.param-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-  transform: translateX(-100%);
-  animation: shimmer 3s infinite;
-  pointer-events: none;
-  border-radius: 12px;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  20% { transform: translateX(100%); }
-  100% { transform: translateX(100%); }
-}
-
-.param-animate {
-  animation: slideIn 0.4s ease forwards;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
 }
 
 .param-label {
@@ -387,27 +298,6 @@ export default {
   box-shadow: 0 5px 15px rgba(24, 144, 255, 0.2);
 }
 
-.reset-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -50px;
-  width: 50px;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-  transition: all 0.3s ease;
-  transform: skewX(-25deg);
-}
-
-.reset-btn:hover::before {
-  animation: shine 1s;
-}
-
-@keyframes shine {
-  0% { left: -50px; }
-  100% { left: 200px; }
-}
-
 .confirm-btn {
   background: linear-gradient(145deg, #1890ff, #0073e6);
   border-color: #1890ff;
@@ -423,67 +313,6 @@ export default {
   border-color: #0b7dfa;
   transform: translateY(-2px);
   box-shadow: 0 8px 15px rgba(24, 144, 255, 0.3);
-}
-
-.confirm-btn::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: rotate(45deg);
-  animation: btnScan 3s linear infinite;
-}
-
-/* 参数变化动画 */
-.param-changed {
-  animation: changed 0.3s ease-in-out;
-}
-
-@keyframes changed {
-  0% {
-    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(24, 144, 255, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
-  }
-}
-
-.param-reset {
-  animation: reset 0.5s ease-in-out;
-}
-
-@keyframes reset {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.save-pulse {
-  animation: pulse 0.3s ease-in-out;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
 }
 
 /* 科技感边框 */
@@ -503,7 +332,6 @@ export default {
   height: 25px;
   border: 2px solid #1890ff;
   opacity: 0.7;
-  animation: glow 2s ease-in-out infinite alternate;
 }
 
 .top-left {
@@ -532,40 +360,5 @@ export default {
   right: 0;
   border-left: none;
   border-top: none;
-}
-
-.scanning-line {
-  position: absolute;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #1890ff, #1890ff, transparent);
-  top: 0;
-  left: 0;
-  animation: scan 4s linear infinite;
-  opacity: 0.6;
-  box-shadow: 0 0 10px rgba(24, 144, 255, 0.5);
-}
-
-@keyframes scan {
-  0% {
-    top: 0;
-  }
-  100% {
-    top: 100%;
-  }
-}
-
-@keyframes glow {
-  from { box-shadow: 0 0 5px rgba(24, 144, 255, 0.5); }
-  to { box-shadow: 0 0 15px rgba(24, 144, 255, 0.8); }
-}
-
-@keyframes btnScan {
-  0% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  100% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
 }
 </style> 

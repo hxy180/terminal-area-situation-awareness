@@ -169,7 +169,7 @@ export default {
             // 模拟解析成功
             this.trackData = {
               fileName: file.name,
-              trackCount: Math.floor(Math.random() * 300) + 200,
+              trackCount: 100,
               timestamp: new Date().toISOString()
             };
             
@@ -365,13 +365,14 @@ export default {
   position: absolute;
   top: 20px;
   right: 20px;
-  padding: 15px;
-  background-color: rgba(1, 42, 87, 0.8);
+  padding: 5px;
+  background-color: rgba(1, 42, 87, 0.9);
   border: 1px solid var(--border-color);
   border-radius: 5px;
-  width: 200px;
+  width: 220px;
   backdrop-filter: blur(5px);
   box-shadow: 0 0 15px rgba(0, 179, 255, 0.3);
+  z-index: 100;
 }
 
 .system-container {

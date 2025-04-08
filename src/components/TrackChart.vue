@@ -222,12 +222,13 @@ export default {
         },
         xAxis: {
           type: 'value',
-          name: 'X/m',
-          nameLocation: 'end',
-          nameGap: 15,
+          name: 'X/km',
+          nameLocation: 'middle',
+          nameGap: 30,
           nameTextStyle: {
             color: '#fff',
-            fontSize: 14
+            fontSize: 14,
+            padding: [10, 0, 0, 0]
           },
           min: -100000 * (1/this.zoom),
           max: 150000 * (1/this.zoom),
@@ -251,12 +252,13 @@ export default {
         },
         yAxis: {
           type: 'value',
-          name: 'Y/m',
-          nameLocation: 'end',
-          nameGap: 15,
+          name: 'Y/km',
+          nameLocation: 'middle',
+          nameGap: 45,
           nameTextStyle: {
             color: '#fff',
-            fontSize: 14
+            fontSize: 14,
+            padding: [0, 0, 10, 0]
           },
           min: -150000 * (1/this.zoom),
           max: 200000 * (1/this.zoom),
@@ -378,35 +380,64 @@ export default {
       
       // 模拟生成更多的轨迹
       const directions = [
-        { angle: Math.PI * 0.75, color: '#00ff00', name: '西北' },
-        { angle: Math.PI * 0.25, color: '#ffff00', name: '东北' },
-        { angle: Math.PI * 1.25, color: '#ff0000', name: '西南' },
-        { angle: Math.PI * 1.75, color: '#00ffff', name: '东南' }
+        { angle: Math.PI * 0.75, color: '#00ff00', name: '西北', weight: 0.5 },
+        { angle: Math.PI * 0.25, color: '#ffff00', name: '东北', weight: 0.5 },
+        { angle: Math.PI * 1.25, color: '#ff0000', name: '西南', weight: 0.5 },
+        { angle: Math.PI * 1.75, color: '#00ffff', name: '东南', weight: 3 } // 东南方向权重更高
       ];
       
       // 多生成几个航迹方向
       const extraDirs = [
-        { angle: Math.PI * 0.5, color: '#ff00ff', name: '北' },
-        { angle: Math.PI * 1.0, color: '#ffffff', name: '西' },
-        { angle: Math.PI * 1.5, color: '#ffaa00', name: '南' },
-        { angle: Math.PI * 0.0, color: '#00ffaa', name: '东' }
+        { angle: Math.PI * 0.5, color: '#ff00ff', name: '北', weight: 0.3 },
+        { angle: Math.PI * 1.0, color: '#ffffff', name: '西', weight: 0.3 },
+        { angle: Math.PI * 1.5, color: '#ffaa00', name: '南', weight: 0.3 },
+        { angle: Math.PI * 0.0, color: '#00ffaa', name: '东', weight: 0.3 }
       ];
       
       const allDirs = [...directions, ...extraDirs];
+      const totalWeight = allDirs.reduce((sum, dir) => sum + dir.weight, 0);
       
-      // 随机选择一些方向，生成多条航迹
-      const trackCount = Math.min(10, this.trackCount);
-      for (let i = 0; i < trackCount; i++) {
-        const dirIndex = i % allDirs.length;
-        const dir = allDirs[dirIndex];
-        const scale = Math.random() * 0.5 + 0.75; // 0.75 - 1.25的随机系数
+      // 生成100条航迹
+      const totalTracks = Math.min(100, this.trackCount);
+      let trackCount = 0;
+      
+      // 根据权重分配各方向的航迹数量
+      allDirs.forEach(dir => {
+        // 计算该方向应分配的航迹数量
+        const dirTrackCount = Math.floor((dir.weight / totalWeight) * totalTracks);
+        
+        // 为该方向生成航迹
+        for (let i = 0; i < dirTrackCount; i++) {
+          if (trackCount >= totalTracks) break; // 确保不超过总航迹数
+          
+          const scale = Math.random() * 0.5 + 0.75; // 0.75 - 1.25的随机系数
+          const angleVariation = (Math.random() - 0.5) * 0.2; // 在方向上添加小的随机变化
+          
+          this.tracks.push({
+            data: this.generateDirectionalTrack(dir.angle + angleVariation, 400000 * scale),
+            color: dir.color,
+            name: `${dir.name}航迹${i+1}`,
+            currentIndex: 5 // 从第5个点开始显示
+          });
+          
+          trackCount++;
+        }
+      });
+      
+      // 如果由于取整导致的航迹总数不足，则在东南方向添加剩余航迹
+      while (trackCount < totalTracks) {
+        const eastSouthDir = directions[3]; // 东南方向
+        const scale = Math.random() * 0.5 + 0.75;
+        const angleVariation = (Math.random() - 0.5) * 0.2;
         
         this.tracks.push({
-          data: this.generateDirectionalTrack(dir.angle + (Math.random() - 0.5) * 0.2, 400000 * scale),
-          color: dir.color,
-          name: `${dir.name}航迹${i+1}`,
-          currentIndex: 5 // 从第5个点开始显示
+          data: this.generateDirectionalTrack(eastSouthDir.angle + angleVariation, 400000 * scale),
+          color: eastSouthDir.color,
+          name: `${eastSouthDir.name}航迹${trackCount+1}`,
+          currentIndex: 5
         });
+        
+        trackCount++;
       }
       
       // 重新启动动画
