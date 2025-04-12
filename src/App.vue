@@ -32,6 +32,7 @@ export default {
         status: '系统运行正常'
       },
       selectedFile: null,
+      selectedFilePath: '',  // 新增：存储文件路径
       trackData: null,
       showParamDialog: false,
       showMetrics: false,
@@ -58,11 +59,12 @@ export default {
     setInterval(this.updateTime, 1000);
   },
   methods: {
-    handleButtonClick(action, file) {
+    async handleButtonClick(action, file) {
       switch(action) {
         case 'selectData':
           if (file) {
             this.selectedFile = file;
+            this.selectedFilePath = `./temp/${file.name}`;  // 修改为使用 temp 文件夹的相对路径
             this.handleMatFile(file);
             // 重置所有显示状态
             this.showMetrics = false;
@@ -116,34 +118,24 @@ export default {
             });
           }, 3000);
           break;
-        case 'analyzeResults':
-          if (!this.trackData) {
-            ElMessage({
-              message: '请先选择有效的MAT格式航迹数据并识别交通流',
-              type: 'warning'
-            });
-            return;
-          }
+      case 'analyzeResults':
+        this.analyzeLoading = true;
+        this.loadingText = '分析结果生成中...';
+        this.loading = true;
+        
+        // 简化为直接显示统计图表
+        setTimeout(() => {
+          this.loading = false;
+          this.analyzeLoading = false;
+          this.showStatistics = true;
           
-          // 显示加载动画
-          this.analyzeLoading = true;
-          this.loadingText = '分析结果生成中...';
-          this.loading = true;
-          
-          // 模拟数据分析过程
-          setTimeout(() => {
-            this.loading = false;
-            this.analyzeLoading = false;
-            
-            // 显示统计图表
-            this.showStatistics = true;
-            
-            ElMessage({
-              message: '分析结果已生成',
-              type: 'success'
-            });
-          }, 2000);  // 2秒的分析时间
-          break;
+          ElMessage({
+            message: '分析结果已生成',
+            type: 'success'
+          });
+        }, 2000);
+        break;          
+
       }
     },
     handleFileError(errorMsg) {
@@ -169,7 +161,7 @@ export default {
             // 模拟解析成功
             this.trackData = {
               fileName: file.name,
-              trackCount: 100,
+              trackCount: 348,
               timestamp: new Date().toISOString()
             };
             
@@ -239,25 +231,45 @@ export default {
       });
     },
     // 根据参数更新算法结果指标
-    updateAlgorithmMetrics() {
-      // 模拟计算不同参数下的指标
-      // 在实际应用中，这应该是基于算法计算的结果
-      
+    async updateAlgorithmMetrics() {
       // 获取当前参数
       const { resamplePoints, centerAreaLength, neighborRadius, minPoints } = this.algorithmParams;
       
-      // 模拟计算 - 这里使用简单算法根据参数生成一些"看起来合理"的指标值
-      const dbi = (0.5 - Math.pow(neighborRadius / 15, 0.8) * 0.3).toFixed(4);
-      const ch = Math.floor(1000 + resamplePoints * 10 + centerAreaLength * 20);
-      const sc = (0.7 + (minPoints / 20) * 0.3).toFixed(4);
-      
-      // 更新指标参数
-      this.algorithmParams = {
-        ...this.algorithmParams,
-        dbi,
-        ch,
-        sc
-      };
+      try {
+        // 调用后端接口
+        const response = await fetch('/api/echo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: 'update_metrics'
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // 从响应中提取参数
+          const { dbi, ch, sc } = result.params;
+          
+          // 更新指标参数
+          this.algorithmParams = {
+            ...this.algorithmParams,
+            dbi,
+            ch,
+            sc
+          };
+        } else {
+          throw new Error(result.error || '获取指标参数失败');
+        }
+      } catch (error) {
+        console.error('更新指标参数失败:', error);
+        ElMessage({
+          message: '更新指标参数失败，请重试',
+          type: 'error'
+        });
+      }
     }
   }
 }
@@ -278,7 +290,7 @@ export default {
           状态: <span class="status-value">{{ headerInfo.status }}</span>
         </div>
         <div v-if="selectedFile" class="file-info">
-          当前数据: <span class="file-name">{{ selectedFile.name }}</span>
+          当前数据: <span class="file-name">{{ selectedFilePath }}</span>
         </div>
       </div>
       <h1 v-motion :initial="{ opacity: 0, y: -50 }" :enter="{ opacity: 1, y: 0, transition: { delay: 300, duration: 500 } }" class="title">终端区运行态势感知系统</h1>
@@ -325,7 +337,7 @@ export default {
           <Transition name="fade">
             <div v-if="showStatistics" class="direction-container">
               <DirectionPanel title="航迹数量最多" direction="东南方向" />
-              <DirectionPanel title="航迹差异最大" direction="东南方向" />
+              <DirectionPanel title="航迹差异最大" direction="西南方向" />
             </div>
             <div v-else class="no-data-placeholder direction-placeholder">
               <div class="placeholder-text">请点击"分析结果"按钮查看方向分析</div>
@@ -334,7 +346,11 @@ export default {
         </div>
         <div class="panel chart-panel">
           <Transition name="fade">
-            <StatisticsChart v-if="showStatistics" />
+            <StatisticsChart 
+              v-if="showStatistics" 
+              ref="statisticsChart"
+              :chartData="statisticsData"
+            />
             <div v-else class="no-data-placeholder">
               <div class="placeholder-text">请点击"分析结果"按钮查看数据分析</div>
             </div>
@@ -345,8 +361,7 @@ export default {
     
     <footer class="footer">
       <div class="tech-info">
-        <span v-if="trackData">航迹数：{{ trackData.trackCount }} | </span>
-        采样率：1s | 处理状态：{{ headerInfo.status }}
+        <span v-if="trackData">航迹数：{{ trackData.trackCount }} | </span> 处理状态：{{ headerInfo.status }}
       </div>
       <div class="copyright">© 2025 终端区运行态势感知系统</div>
     </footer>

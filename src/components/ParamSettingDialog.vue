@@ -67,7 +67,6 @@ export default {
           max: 500,
           step: 10,
           precision: 0,
-          unit: '点',
           description: '控制航迹重采样时的点数量，数值越大精度越高'
         },
         centerAreaLength: {
@@ -77,7 +76,6 @@ export default {
           max: 50,
           step: 1,
           precision: 0,
-          unit: 'km',
           description: '设置识别算法中心区域的边长范围'
         },
         neighborRadius: {
@@ -87,7 +85,7 @@ export default {
           max: 15,
           step: 0.5,
           precision: 1,
-          unit: 'km',
+          // unit: 'km',
           description: '聚类算法参数，影响航迹聚类效果'
         },
         minPoints: {
@@ -97,7 +95,7 @@ export default {
           max: 20,
           step: 1,
           precision: 0,
-          unit: '点',
+          // unit: '点',
           description: '聚类算法的最小点数要求，用于过滤噪声点'
         }
       },
